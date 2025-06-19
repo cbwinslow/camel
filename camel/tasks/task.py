@@ -137,12 +137,15 @@ class Task(BaseModel):
         """
         self.id = id
 
-    def set_state(self, state: TaskState):
+    def set_state(self, state: Union[TaskState, str]):
         r"""Recursively set the state of the task and its subtasks.
 
         Args:
-            state (TaskState): The giving state.
+            state (Union[TaskState, str]): The giving state. If a string is
+                provided it will be converted to :class:`TaskState`.
         """
+        if isinstance(state, str):
+            state = TaskState(state)
         self.state = state
         if state == TaskState.DONE:
             for subtask in self.subtasks:
