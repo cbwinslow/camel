@@ -137,15 +137,26 @@ def deduplicate_internally(
             duplicate_to_target_map={},
         )
 
+    if embedding_instance is None and embeddings is None:
+        raise ValueError(
+            "Either 'embedding_instance' or 'embeddings' must be provided."
+        )
+    if embedding_instance is not None and embeddings is not None:
+        raise ValueError(
+            "Cannot provide both 'embedding_instance' and 'embeddings'. "
+            "Please choose only one way to supply embeddings."
+        )
+
     if len(texts) == 1:
+        emb = (
+            embeddings[0]
+            if embeddings is not None
+            else embedding_instance.embed_list(texts)[0]  # type: ignore[union-attr]
+        )
         return DeduplicationResult(
             original_texts=texts,
             unique_ids=[0],
-            unique_embeddings_dict={
-                0: embeddings[0]
-                if embeddings
-                else embedding_instance.embed_list(texts)[0]  # type: ignore[union-attr]
-            },
+            unique_embeddings_dict={0: emb},
             duplicate_to_target_map={},
         )
 
@@ -158,16 +169,6 @@ def deduplicate_internally(
     # Check if the parameters are valid.
     if not 0 <= threshold <= 1:
         raise ValueError("Threshold must be between 0 and 1")
-
-    if embedding_instance is None and embeddings is None:
-        raise ValueError(
-            "Either 'embedding_instance' or 'embeddings' must be provided."
-        )
-    if embedding_instance is not None and embeddings is not None:
-        raise ValueError(
-            "Cannot provide both 'embedding_instance' and 'embeddings'. "
-            "Please choose only one way to supply embeddings."
-        )
 
     if embedding_instance is not None:
         # Use Camel's embedding_instance to vectorize.
@@ -217,7 +218,6 @@ def deduplicate_internally(
     unique_ids = []
     unique_embeddings_dict = {}
 
-    assert embeddings, "embeddings must be valid"
 
     for i, (_, emb) in enumerate(zip(texts, embeddings)):
         if i not in duplicate_to_target_map:

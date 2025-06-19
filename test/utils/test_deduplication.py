@@ -65,6 +65,12 @@ def test_deduplicate_internally_single_item():
     assert len(result.duplicate_to_target_map) == 0
 
 
+def test_deduplicate_internally_single_item_no_embedding():
+    """Ensure ValueError is raised when no embeddings are provided."""
+    with pytest.raises(ValueError):
+        deduplicate_internally(texts=["hello"])
+
+
 def test_deduplicate_internally_with_mock_embedding():
     texts = ["Hello world!", "Hello world!", "HELLO WORLD!", "Something else"]
     mock_embedding_instance = MockEmbedding()
